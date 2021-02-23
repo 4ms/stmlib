@@ -83,6 +83,8 @@ COMBO_BIN      = $(BUILD_DIR)$(TARGET)_bootloader_combo.bin
 BOOTLOADER_HEX = $(BUILD_ROOT)$(BOOTLOADER)/$(BOOTLOADER).hex
 TARGET_SIZE    = $(BUILD_DIR)$(TARGET).size
 TARGETS        = $(BUILD_DIR)$(TARGET).*
+INCLUDEFLAGS ?=
+EXTRA_CPP_FLAGS ?=
 
 # ------------------------------------------------------------------------------
 # Platform specific flags
@@ -161,6 +163,7 @@ endif
 
 INCFLAGS       = \
 			-I. \
+			$(INCLUDEFLAGS) \
 			-D$(ARCH_DEFINE) \
 			-D$(MODEL_DEFINE) \
 			$(APPLICATION_DEFINE) \
@@ -184,9 +187,10 @@ CCFLAGS         = \
                         $(INCFLAGS) \
 			$(ARCHFLAGS)
 
-CPPFLAGS      = -std=c++11 \
+CPPFLAGS      = -std=c++17 \
                 -fno-exceptions \
-                -fno-rtti
+                -fno-rtti \
+				$(EXTRA_CPP_FLAGS) \
 
 ASFLAGS       = $(ARCHFLAGS)
 
