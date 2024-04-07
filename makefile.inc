@@ -1,6 +1,6 @@
-# Copyright 2012 Olivier Gillet.
+# Copyright 2012 Emilie Gillet.
 #
-# Author: Olivier Gillet (ol.gillet@gmail.com)
+# Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,12 +28,19 @@
 
 TOOLCHAIN_PATH ?= 
 
-# Supported: arm-usb-ocd, arm-usb-ocd-h, arm-usb-tiny-h, stlink-v2, stlink-v2-1
-PGM_INTERFACE ?= stlink-v2-1
-# hla for stlink-v2+jtag; hla-swd for stlink-v2+swd; jtag otherwise
-PGM_INTERFACE_TYPE ?= hla
+PGM_INTERFACE ?= stlink-v2
+# PGM_INTERFACE ?= ftdi/olimex-arm-jtag-swd
+# PGM_INTERFACE ?= ftdi/olimex-arm-usb-ocd-h
 
-PGM_SERIAL_PORT ?= /dev/tty.usbserial-AH02F1B0
+ifeq ($(PGM_INTERFACE),ftdi/olimex-arm-jtag-swd)
+OPENOCD_INTERFACE_SCRIPT ?= interface/ftdi/olimex-arm-usb-ocd-h.cfg -f interface/ftdi/olimex-arm-jtag-swd.cfg
+else
+OPENOCD_INTERFACE_SCRIPT ?= interface/$(PGM_INTERFACE).cfg
+endif
+
+OPENOCD_SCRIPT_PATH ?= /opt/local/share/openocd/scripts/
+
+PGM_SERIAL_PORT ?= /dev/ftdi-usbserial
 PGM_SERIAL_BAUD_RATE ?= 115200
 PGM_SERIAL_VERIFY ?= -v
 
@@ -63,7 +70,6 @@ FORMAT_RAMSIZE = | figlet | cowsay -n -f small
 
 STM32LOADER_PATH = stmlib/programming/serial/
 OPENOCD_SCRIPTS_PATH = stmlib/programming/jtag/
-
 
 # ------------------------------------------------------------------------------
 # Files and directories for the user code
@@ -102,6 +108,7 @@ ARCHFLAGS = -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 \
             -mthumb-interwork -funroll-loops
 
 ARCH_DEFINE = GCC_ARMCM4
+OPENOCD_TARGET = f4x
 
 else ifeq ($(FAMILY),f37x)
 
@@ -109,26 +116,58 @@ MODEL_DEFINE = STM32F37X -DARM_MATH_CM4 -D__FPU_PRESENT
 STARTUP_OBJ   = $(BUILD_DIR)startup_stm32f37x.o
 LINKER_SCRIPT = stmlib/linker_scripts/stm32f373x_flash$(LD_SUFFIX).ld
 FW_STDDRIVER_DIR = $(STM32_PATH)/STM32F37x_StdPeriph_Driver
-ARCHFLAGS = -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mthumb-interwork -funroll-loops
+ARCHFLAGS = -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mthumb-interwork -funroll-loops --specs=nano.specs
 ARCH_DEFINE = GCC_ARMCM4
+OPENOCD_TARGET = f3x
 
-else ifeq ($(FAMILY),f30x)
+else ifeq ($(FAMILY),f0xx)
 
-MODEL_DEFINE = STM32F30X -DARM_MATH_CM4 -D__FPU_PRESENT
-STARTUP_OBJ   = $(BUILD_DIR)startup_stm32f30x.o
-LINKER_SCRIPT = stmlib/linker_scripts/stm32f373x_flash$(LD_SUFFIX).ld
-FW_STDDRIVER_DIR = $(STM32_PATH)/STM32F30x_StdPeriph_Driver
-ARCHFLAGS = -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mthumb-interwork -funroll-loops
-ARCH_DEFINE = GCC_ARMCM4
+MODEL_DEFINE = STM32F0XX
+STARTUP_OBJ   = $(BUILD_DIR)startup_stm32f0xx.o
+LINKER_SCRIPT = stmlib/linker_scripts/stm32f0xx_flash$(LD_SUFFIX).ld
+FW_STDDRIVER_DIR = $(STM32_PATH)/STM32F0xx_StdPeriph_Driver
+ARCHFLAGS = -mcpu=cortex-m0 -mthumb -mthumb-interwork -funroll-loops
+ARCH_DEFINE = GCC_ARMCM0
+OPENOCD_TARGET = f0x
+
+else ifeq ($(FAMILY),f7xx)
+
+MODEL_DEFINE = STM32F7XX -DSTM32F765xx -DARM_MATH_CM7 -D__FPU_PRESENT
+STARTUP_OBJ   = $(BUILD_DIR)startup_stm32f765xx.o
+LINKER_SCRIPT = stmlib/linker_scripts/stm32f7xx_flash$(LD_SUFFIX).ld
+FW_STDDRIVER_DIR = $(STM32_PATH)/STM32F7xx_HAL_Driver
+ARCHFLAGS = -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -mfpu=fpv5-d16 -mthumb-interwork -funroll-loops
+ARCH_DEFINE = GCC_ARMCM7
+OPENOCD_TARGET = f7x
+
+else ifeq ($(FAMILY),h7xx)
+
+MODEL_DEFINE = STM32H7XX -DSTM32H743xx -DARM_MATH_CM7 -D__FPU_PRESENT
+STARTUP_OBJ   = $(BUILD_DIR)startup_stm32h743xx.o
+LINKER_SCRIPT = stmlib/linker_scripts/stm32h7xx_flash$(LD_SUFFIX).ld
+FW_STDDRIVER_DIR = $(STM32_PATH)/STM32H7xx_HAL_Driver
+ARCHFLAGS = -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -mfpu=fpv5-d16 -mthumb-interwork -funroll-loops
+ARCH_DEFINE = GCC_ARMCM7
+OPENOCD_TARGET = h7x_dual_bank
+
+else ifeq ($(FAMILY),g4xx)
+
+MODEL_DEFINE = STM32G4XX -DSTM32G473xx -DARM_MATH_CM7 -D__FPU_PRESENT
+STARTUP_OBJ   = $(BUILD_DIR)startup_stm32g473xx.o
+LINKER_SCRIPT = stmlib/linker_scripts/stm32g4xx_flash$(LD_SUFFIX).ld
+FW_STDDRIVER_DIR = $(STM32_PATH)/STM32G4xx_HAL_Driver
+ARCHFLAGS = -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -mfpu=fpv5-d16 -mthumb-interwork -funroll-loops
+ARCH_DEFINE = GCC_ARMCM7
+OPENOCD_TARGET = g4x
 
 else
 
 ifeq ($(DENSITY),hd)
-MODEL_DEFINE = STM32F10X_HD -D STM32F10X
+MODEL_DEFINE = STM32F10X_HD -DSTM32F10X
 else ifeq ($(DENSITY),md)
-MODEL_DEFINE = STM32F10X_MD -D STM32F10X
+MODEL_DEFINE = STM32F10X_MD -DSTM32F10X
 else
-MODEL_DEFINE = STM32F10X_CL -D STM32F10X
+MODEL_DEFINE = STM32F10X_CL -DSTM32F10X
 endif
 
 STARTUP_OBJ   = $(BUILD_DIR)startup_stm32f10x_$(DENSITY).o
@@ -136,6 +175,7 @@ LINKER_SCRIPT ?= stmlib/linker_scripts/stm32f10x_flash_$(DENSITY)$(LD_SUFFIX).ld
 FW_STDDRIVER_DIR = $(STM32_PATH)/STM32F10x_StdPeriph_Driver
 ARCHFLAGS = -mcpu=cortex-m3 -mthumb -fno-unroll-loops
 ARCH_DEFINE = GCC_ARMCM3
+OPENOCD_TARGET = f1x
 
 endif
 
@@ -157,11 +197,13 @@ LD_SUFFIX =
 BASE_ADDRESS = 0x08000000
 endif
 
+OPENOCD_TARGET_SCRIPT ?= target/stm32$(OPENOCD_TARGET).cfg
+
 # ------------------------------------------------------------------------------
 # Flags for gcc/binutils
 # ------------------------------------------------------------------------------
 
-INCFLAGS       = \
+INCFLAGS = \
 			-I. \
 			$(INCLUDEFLAGS) \
 			-D$(ARCH_DEFINE) \
@@ -170,31 +212,28 @@ INCFLAGS       = \
 			$(PROJECT_CONFIGURATION) \
 			-DF_CPU=$(F_CPU) \
 			-DF_CRYSTAL=$(F_CRYSTAL) \
-			-DSAMPLE_RATE=$(SAMPLE_RATE) \
+			-DHSE_VALUE=$(F_CRYSTAL) \
 			-DUSE_STDPERIPH_DRIVER \
 			-D$(SYSCLOCK)=$(F_CPU)
 
-CCFLAGS         = \
-                        -g -O2 -Wall -Werror \
-                        -Wno-unused-local-typedefs \
-                        -fasm \
-                        -finline \
-                        -finline-functions \
-                        -finline-functions-called-once \
-                        -ffast-math \
-                        -fdata-sections \
-                        -ffunction-sections \
-                        $(INCFLAGS) \
+CCFLAGS = \
+			-g -O2 -Wall -Werror -Wno-unused-local-typedefs -Wno-strict-aliasing \
+			-fasm \
+			-finline \
+			-finline-functions-called-once \
+			-fdata-sections \
+			-ffunction-sections \
+			-fshort-enums \
+			-fno-move-loop-invariants \
+			-fno-unwind-tables \
+			$(INCFLAGS) \
 			$(ARCHFLAGS)
 
-CPPFLAGS      = -std=c++17 \
-                -fno-exceptions \
-                -fno-rtti \
-				$(EXTRA_CPP_FLAGS) \
+CPPFLAGS = -fno-exceptions -fno-rtti
 
-ASFLAGS       = $(ARCHFLAGS)
+ASFLAGS = $(ARCHFLAGS)
 
-LDFLAGS       = \
+LDFLAGS = \
 			-Wl,-Map=$(BUILD_DIR)$(TARGET).map \
 			-Wl,--gc-sections \
 			-T $(LINKER_SCRIPT) \
@@ -283,7 +322,7 @@ OBJ_FILES      = $(CC_FILES:.cc=.o) $(C_FILES:.c=.o) $(AS_FILES:.s=.o)
 OBJS           = $(patsubst %,$(BUILD_DIR)%,$(OBJ_FILES)) $(STARTUP_OBJ)
 DEPS           = $(OBJS:.o=.d)
 
-all:	$(BUILD_DIR) $(TARGET_HEX)
+all: $(BUILD_DIR) $(TARGET_HEX)
 
 
 # ------------------------------------------------------------------------------
@@ -292,11 +331,10 @@ all:	$(BUILD_DIR) $(TARGET_HEX)
 
 RESOURCE_COMPILER = stmlib/tools/resources_compiler.py
 
-resources:	$(TARGET)/resources.cc
+resources: $(TARGET)/resources.cc
 
-$(TARGET)/resources.cc:	$(wildcard $(RESOURCES)/*.py)
-	SAMPLE_RATE=$(SAMPLE_RATE) \
-	python2.7 $(RESOURCE_COMPILER) $(RESOURCES)/resources.py
+$(TARGET)/resources.cc: $(wildcard $(RESOURCES)/*.py)
+		python $(RESOURCE_COMPILER) $(RESOURCES)/resources.py
 
 
 # ------------------------------------------------------------------------------
@@ -306,19 +344,23 @@ $(TARGET)/resources.cc:	$(wildcard $(RESOURCES)/*.py)
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-$(TARGET_ELF):  $(OBJS) $(LINKER_SCRIPT)
+$(TARGET_ELF): $(OBJS)
 	$(CC) $(LDFLAGS) -o $(TARGET_ELF) $(OBJS)
 
-bin:	$(TARGET_BIN)
+$(DEP_FILE): $(BUILD_DIR) $(DEPS)
+	cat $(DEPS) > $(DEP_FILE)
 
-hex:	$(TARGET_HEX)
+bin: $(TARGET_BIN)
+
+hex: $(TARGET_HEX)
 
 clean:
 	$(REMOVE) $(OBJS) $(TARGETS) $(DEPS)
 
-depends:  $(DEPS)
+depends: $(DEPS)
+	cat $(DEPS) > $(DEP_FILE)
 
-$(TARGET_SIZE):  $(TARGET_ELF)
+$(TARGET_SIZE): $(TARGET_ELF)
 	$(SIZE) $(TARGET_ELF) > $(TARGET_SIZE)
 
 $(BUILD_DIR)$(TARGET).top_symbols: $(TARGET_ELF)
@@ -330,7 +372,7 @@ size: $(TARGET_SIZE)
 ramsize: $(TARGET_SIZE)
 	cat $(TARGET_SIZE) | awk '{ print $$2+$$3 }' | tail -n1 $(FORMAT_RAMSIZE)
 
-disassemble:  build/$(TARGET)/$(TARGET).lss build/$(TARGET)/$(TARGET).top_symbols
+disassemble: build/$(TARGET)/$(TARGET).lss build/$(TARGET)/$(TARGET).top_symbols
 
 .PHONY: all bin clean depends resources
 
@@ -338,8 +380,8 @@ disassemble:  build/$(TARGET)/$(TARGET).lss build/$(TARGET)/$(TARGET).top_symbol
 # Bootloader merging
 # ------------------------------------------------------------------------------
 
-$(COMBO_BIN):  $(TARGET_HEX) $(BOOTLOADER_HEX)
-	cat  $(TARGET_HEX) $(BOOTLOADER_HEX) | \
+$(COMBO_BIN): $(TARGET_HEX) $(BOOTLOADER_HEX)
+	cat	$(TARGET_HEX) $(BOOTLOADER_HEX) | \
 			awk -f stmlib/programming/merge_hex.awk > $(COMBO_HEX)
 	$(OBJCOPY) -I ihex -O binary $(COMBO_HEX) $(COMBO_BIN)
 
@@ -348,7 +390,15 @@ $(COMBO_BIN):  $(TARGET_HEX) $(BOOTLOADER_HEX)
 # Firmware flashing
 # ------------------------------------------------------------------------------
 
-upload:	$(UPLOAD_COMMAND)
+BASE_JTAG_CMD = $(OPENOCD_BIN_PATH)openocd \
+			-s $(OPENOCD_SCRIPT_PATH) \
+			-f $(OPENOCD_INTERFACE_SCRIPT) \
+			-f $(OPENOCD_TARGET_SCRIPT) \
+			-c "init" -c "halt" -c "sleep 200"
+
+POSTLUDE = -c "sleep 200" -c "reset run" -c "shutdown"
+
+upload: $(UPLOAD_COMMAND)
 
 image_serial:
 	python2.7 $(STM32LOADER_PATH)stm32loader.py \
@@ -384,101 +434,93 @@ upload_combo_serial_no_erase: $(COMBO_BIN)
 		-b $(PGM_SERIAL_BAUD_RATE) $(PGM_SERIAL_VERIFY)\
 		-w $(COMBO_BIN)
 
-BASE_JTAG_CMD = openocd \
-			-f $(OPENOCD_SCRIPTS_PATH)interface_$(PGM_INTERFACE).cfg \
-			-f $(OPENOCD_SCRIPTS_PATH)stm32$(FAMILY)_$(PGM_INTERFACE_TYPE).cfg \
-			-f $(OPENOCD_SCRIPTS_PATH)prelude_$(FAMILY).cfg \
-
-ERASE_JTAG_CMD = $(BASE_JTAG_CMD) \
-			-f $(OPENOCD_SCRIPTS_PATH)erase_$(FAMILY).cfg \
-			-f $(OPENOCD_SCRIPTS_PATH)postlude.cfg
-
-UPLOAD_JTAG_CMD = $(BASE_JTAG_CMD) \
-			-f $(OPENOCD_SCRIPTS_PATH)erase_$(FAMILY).cfg \
-			-c "flash write_bank 0 $(TARGET_BIN) 0x0" \
-			-c "verify_image $(TARGET_BIN)" \
-			-f $(OPENOCD_SCRIPTS_PATH)postlude.cfg
-
-UPLOAD_JTAG_COMBO_CMD = $(BASE_JTAG_CMD) \
-			-f $(OPENOCD_SCRIPTS_PATH)erase_$(FAMILY).cfg \
-			-c "flash write_bank 0 $(COMBO_BIN) 0x0" \
-			-c "verify_image $(COMBO_BIN)" \
-			-f $(OPENOCD_SCRIPTS_PATH)postlude.cfg
-
-UPLOAD_JTAG_NO_ERASE_CMD = $(BASE_JTAG_CMD) \
-			-c "flash write_image erase $(TARGET_BIN) 0x08000000" \
-			-c "verify_image $(TARGET_BIN)" \
-			-f $(OPENOCD_SCRIPTS_PATH)postlude.cfg
-
-UPLOAD_JTAG_COMBO_NO_ERASE_CMD = $(BASE_JTAG_CMD) \
-			-c "flash write_image erase $(COMBO_BIN) 0x08000000" \
-			-c "verify_image $(COMBO_BIN)" \
-			-f $(OPENOCD_SCRIPTS_PATH)postlude.cfg
-
-UPLOAD_JTAG_ERASE_FIRST_CMD = $(BASE_JTAG_CMD) \
-			-c "flash erase_address 0x08000000 16384" \
-			-c "reset" \
-			-c "flash write_image erase $(TARGET_BIN) 0x08000000" \
-			-c "verify_image $(TARGET_BIN)" \
-			-f $(OPENOCD_SCRIPTS_PATH)postlude.cfg
-
-UPLOAD_JTAG_COMBO_ERASE_FIRST_CMD = $(BASE_JTAG_CMD) \
-			-c "flash erase_address 0x08000000 16384" \
-			-c "reset" \
-			-c "flash write_image erase $(COMBO_BIN) 0x08000000" \
-			-c "verify_image $(COMBO_BIN)" \
-			-f $(OPENOCD_SCRIPTS_PATH)postlude.cfg
-
 image_jtag:
 	$(BASE_JTAG_CMD) \
 		-c "dump_image image.bin 0x08000000 131072" \
-		-f $(OPENOCD_SCRIPTS_PATH)postlude.cfg
+		$(POSTLUDE)
 
 image_jtag_256k:
 	$(BASE_JTAG_CMD) \
 		-c "dump_image image.bin 0x08000000 262144" \
-		-f $(OPENOCD_SCRIPTS_PATH)postlude.cfg
+		$(POSTLUDE)
 
 image_jtag_1M:
 	$(BASE_JTAG_CMD) \
 		-c "dump_image image.bin 0x08000000 1048576" \
-		-f $(OPENOCD_SCRIPTS_PATH)postlude.cfg
+		$(POSTLUDE)
 
 debug_server: $(TARGET_BIN)
-	openocd \
-		-f $(OPENOCD_SCRIPTS_PATH)interface_$(PGM_INTERFACE).cfg \
-		-f $(OPENOCD_SCRIPTS_PATH)stm32$(FAMILY)_$(PGM_INTERFACE_TYPE).cfg \
-		-c "init" \
-		-c "reset" \
-		-c "halt"
+	$(OPENOCD_BIN_PATH)openocd \
+		-s $(OPENOCD_SCRIPT_PATH) \
+		-f $(OPENOCD_INTERFACE_SCRIPT) \
+		-f $(OPENOCD_TARGET_SCRIPT) \
+		-c "init;reset;halt" \
 
 debug_client:
 	$(DB) --eval-command="target remote localhost:3333" $(TARGET_ELF)
 
-# Because of a weird OpenOCD bug, this command sometimes fails with an
-# "Error: error executing stm32x flash write algorithm" error. Retrying
-# immediately always solves it.
-
 erase_jtag:
-	$(ERASE_JTAG_CMD)
+	$(BASE_JTAG_CMD) \
+				-f $(OPENOCD_SCRIPTS_PATH)erase_$(FAMILY).cfg \
+				$(POSTLUDE)
 
 upload_jtag: $(TARGET_BIN)
-	$(UPLOAD_JTAG_CMD)
+	$(BASE_JTAG_CMD) \
+				-f $(OPENOCD_SCRIPTS_PATH)erase_$(FAMILY).cfg \
+				-c "flash write_image erase $(TARGET_BIN) 0x08000000" \
+				-c "verify_image $(TARGET_BIN) 0x08000000" \
+				$(POSTLUDE)
 
 upload_combo_jtag: $(COMBO_BIN)
-	$(UPLOAD_JTAG_COMBO_CMD)
+	$(BASE_JTAG_CMD) \
+				-f $(OPENOCD_SCRIPTS_PATH)erase_$(FAMILY).cfg \
+				-c "flash write_image erase $(COMBO_BIN) 0x08000000" \
+				-c "verify_image $(COMBO_BIN) 0x08000000" \
+				$(POSTLUDE)
 
 upload_jtag_no_erase: $(TARGET_BIN)
-	$(UPLOAD_JTAG_NO_ERASE_CMD)
+	$(BASE_JTAG_CMD) \
+				-c "flash write_image erase $(TARGET_BIN) 0x08000000" \
+				-c "verify_image $(TARGET_BIN) 0x08000000" \
+				$(POSTLUDE)
 
 upload_combo_jtag_no_erase: $(COMBO_BIN)
-	$(UPLOAD_JTAG_COMBO_NO_ERASE_CMD)
+	$(BASE_JTAG_CMD) \
+				-c "flash write_image erase $(COMBO_BIN) 0x08000000" \
+				-c "verify_image $(COMBO_BIN) 0x08000000" \
+				$(POSTLUDE)
 
 upload_jtag_erase_first: $(TARGET_BIN)
-	$(UPLOAD_JTAG_ERASE_FIRST_CMD)
+	$(BASE_JTAG_CMD) \
+				-c "flash erase_address 0x08000000 32768" \
+				-c "reset halt" \
+				-c "flash write_image erase $(TARGET_BIN) 0x08000000" \
+				-c "verify_image $(TARGET_BIN) 0x08000000" \
+				$(POSTLUDE)
 
 upload_combo_jtag_erase_first: $(COMBO_BIN)
-	$(UPLOAD_JTAG_COMBO_ERASE_FIRST_CMD)
+	$(BASE_JTAG_CMD) \
+				-c "flash erase_address 0x08000000 32768" \
+				-c "reset halt" \
+				-c "flash write_image erase $(COMBO_BIN) 0x08000000" \
+				-c "verify_image $(COMBO_BIN) 0x08000000" \
+				$(POSTLUDE)
+
+upload_jtag_erase_first_sector: $(TARGET_BIN)
+	$(BASE_JTAG_CMD) \
+				-c "flash erase_address 0x08000000 0x20000" \
+				-c "reset halt" \
+				-c "flash write_image erase $(TARGET_BIN) 0x08000000" \
+				-c "verify_image $(TARGET_BIN) 0x08000000" \
+				$(POSTLUDE)
+
+upload_combo_jtag_erase_first_sector: $(COMBO_BIN)
+	$(BASE_JTAG_CMD) \
+				-c "flash erase_address 0x08000000 0x20000" \
+				-c "reset halt" \
+				-c "flash write_image erase $(COMBO_BIN) 0x08000000" \
+				-c "verify_image $(COMBO_BIN) 0x08000000" \
+				$(POSTLUDE)
 
 # Phony target for killing the system FTDI driver on OS X.
 kill_ftdi:

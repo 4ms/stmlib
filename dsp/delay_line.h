@@ -1,6 +1,6 @@
-// Copyright 2014 Olivier Gillet.
+// Copyright 2014 Emilie Gillet.
 //
-// Author: Olivier Gillet (ol.gillet@gmail.com)
+// Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -43,6 +43,10 @@ class DelayLine {
   ~DelayLine() { }
   
   void Init() {
+    Reset();
+  }
+
+  void Reset() {
     std::fill(&line_[0], &line_[max_delay], T(0));
     delay_ = 1;
     write_ptr_ = 0;
@@ -58,8 +62,8 @@ class DelayLine {
   }
   
   inline const T Allpass(const T sample, size_t delay, const T coefficient) {
-    float read = line_[(write_ptr_ + delay) % max_delay];
-    float write = sample + coefficient * read;
+    T read = line_[(write_ptr_ + delay) % max_delay];
+    T write = sample + coefficient * read;
     Write(write);
     return -write * coefficient + read;
   }
@@ -98,9 +102,7 @@ class DelayLine {
     const float b_neg = w + a;
     const float f = delay_fractional;
     return (((a * f) - b_neg) * f + c) * f + x0;
-    
   }
-  
 
  private:
   size_t write_ptr_;

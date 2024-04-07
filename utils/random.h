@@ -1,6 +1,6 @@
-// Copyright 2012 Olivier Gillet.
+// Copyright 2012 Emilie Gillet.
 //
-// Author: Olivier Gillet (ol.gillet@gmail.com)
+// Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ class Random {
  public:
   static inline uint32_t state() { return rng_state_; }
 
-  static inline void Seed(uint16_t seed) {
+  static inline void Seed(uint32_t seed) {
     rng_state_ = seed;
   }
 

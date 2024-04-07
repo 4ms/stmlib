@@ -1,6 +1,6 @@
-// Copyright 2012 Olivier Gillet.
+// Copyright 2012 Emilie Gillet.
 //
-// Author: Olivier Gillet (ol.gillet@gmail.com)
+// Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -28,15 +28,29 @@
 
 #include "stmlib/system/bootloader_utils.h"
 
-#if defined STM32F4XX
+#ifdef STM32F4XX
   #include <stm32f4xx_conf.h>
-#elif defined STM32F37X
+#endif  // STM32F4XX
+
+#ifdef STM32F0XX
+  #include <stm32f0xx_conf.h>
+#endif  // STM32F0XX
+
+#ifdef STM32F37X
   #include <stm32f37x_conf.h>
-#elif defined STM32F30X
-  #include <stm32f30x_conf.h>
-#elif defined STM32F10X
-  #include <stm32f10x_conf.h>
 #endif  // STM32F37X
+
+#ifdef STM32F10X
+  #include <stm32f10x_conf.h>
+#endif  // STM32F10X
+
+#ifdef STM32H7XX
+  #include <stm32h7xx_hal_conf.h>
+#endif  // STM32H7XX
+
+#ifdef STM32G4XX
+  #include <stm32g4xx_hal_conf.h>
+#endif  // STM32G4XX
 
 namespace stmlib {
 
@@ -100,3 +114,4 @@ void JumpTo(uint32_t address) {
 }
 
 }  // namespace stmlib
+

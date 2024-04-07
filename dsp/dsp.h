@@ -1,6 +1,6 @@
-// Copyright 2012 Olivier Gillet.
+// Copyright 2012 Emilie Gillet.
 //
-// Author: Olivier Gillet (ol.gillet@gmail.com)
+// Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -48,6 +48,23 @@ inline float Interpolate(const float* table, float index, float size) {
   return a + (b - a) * index_fractional;
 }
 
+
+inline float InterpolateHermite(const float* table, float index, float size) {
+  index *= size;
+  MAKE_INTEGRAL_FRACTIONAL(index)
+  const float xm1 = table[index_integral - 1];
+  const float x0 = table[index_integral + 0];
+  const float x1 = table[index_integral + 1];
+  const float x2 = table[index_integral + 2];
+  const float c = (x1 - xm1) * 0.5f;
+  const float v = x0 - x1;
+  const float w = c + v;
+  const float a = w + v + (x2 - x0) * 0.5f;
+  const float b_neg = w + a;
+  const float f = index_fractional;
+  return (((a * f) - b_neg) * f + c) * f + x0;
+}
+
 inline float InterpolateWrap(const float* table, float index, float size) {
   index -= static_cast<float>(static_cast<int32_t>(index));
   index *= size;
@@ -55,6 +72,10 @@ inline float InterpolateWrap(const float* table, float index, float size) {
   float a = table[index_integral];
   float b = table[index_integral + 1];
   return a + (b - a) * index_fractional;
+}
+
+inline float SmoothStep(float value) {
+  return value * value * (3.0f - 2.0f * value);
 }
 
 #define ONE_POLE(out, in, coefficient) out += (coefficient) * ((in) - out);

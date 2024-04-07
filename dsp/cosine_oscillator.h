@@ -1,6 +1,6 @@
-// Copyright 2014 Olivier Gillet.
+// Copyright 2014 Emilie Gillet.
 //
-// Author: Olivier Gillet (ol.gillet@gmail.com)
+// Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,7 @@ class CosineOscillator {
     if (mode == COSINE_OSCILLATOR_APPROXIMATE) {
       InitApproximate(frequency);
     } else {
-      iir_coefficient_ = 2.0f * cosf(2.0f * M_PI * frequency);
+      iir_coefficient_ = 2.0f * cosf(2.0f * float(M_PI) * frequency);
       initial_amplitude_ = iir_coefficient_ * 0.25f;
     }
     Start();

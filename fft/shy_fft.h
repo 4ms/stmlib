@@ -1,6 +1,6 @@
-// Copyright 2014 Olivier Gillet.
+// Copyright 2014 Emilie Gillet.
 //
-// Author: Olivier Gillet (ol.gillet@gmail.com)
+// Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -88,8 +88,8 @@ template<>
 struct Math<double> {
   inline double pi() const { return 3.141592653589793; }
   inline float sqrt_2_div_2() const { return 0.7071067811865476; }
-  inline double cos(double x) { return cos(x); }
-  inline double sin(double x) { return sin(x); }
+  inline double cos(double x) { return std::cos(x); }
+  inline double sin(double x) { return std::sin(x); }
 };
 
 

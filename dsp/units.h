@@ -1,6 +1,6 @@
-// Copyright 2014 Olivier Gillet.
+// Copyright 2014 Emilie Gillet.
 //
-// Author: Olivier Gillet (ol.gillet@gmail.com)
+// Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -43,6 +43,24 @@ inline float SemitonesToRatio(float semitones) {
 
   return lut_pitch_ratio_high[pitch_integral] * \
       lut_pitch_ratio_low[static_cast<int32_t>(pitch_fractional * 256.0f)];
+}
+
+inline float SemitonesToRatioSafe(float semitones) {
+  float scale = 1.0f;
+  while (semitones > 120.0f) {
+    semitones -= 120.0f;
+    scale *= 1024.0f;
+  }
+  while (semitones < -120.0f) {
+    semitones += 120.0f;
+    scale *= 1.0f / 1024.0f;
+  }
+  return scale * SemitonesToRatio(semitones);
+}
+
+
+inline float Exp2Safe(float value) {
+  return SemitonesToRatioSafe(value * 12.0f);
 }
 
 }  // namespace stmlib

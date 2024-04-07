@@ -1,6 +1,6 @@
-// Copyright 2012 Olivier Gillet.
+// Copyright 2012 Emilie Gillet.
 //
-// Author: Olivier Gillet (ol.gillet@gmail.com)
+// Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -29,13 +29,13 @@
 #ifndef STMLIB_SYSTEM_FLASH_PROGRAMMING_H_
 #define STMLIB_SYSTEM_FLASH_PROGRAMMING_H_
 
-#if defined STM32F37X
+#if defined (STM32F37X)
 
   #define PAGE_SIZE (uint16_t)0x800
 
 #else
 
-  #if defined (STM32F10X_LD) || defined (STM32F10X_MD)
+  #if defined (STM32F10X_LD) || defined (STM32F10X_MD) || defined (STM32F0XX)
     #define PAGE_SIZE  (uint16_t)0x400  /* Page size = 1KByte */
   #elif defined (STM32F10X_HD) || defined (STM32F10X_CL)
     #define PAGE_SIZE  (uint16_t)0x800  /* Page size = 2KByte */

@@ -1,6 +1,6 @@
-// Copyright 2015 Olivier Gillet.
+// Copyright 2015 Emilie Gillet.
 //
-// Author: Olivier Gillet (ol.gillet@gmail.com)
+// Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -35,16 +35,27 @@ namespace stmlib {
 
 class ParameterInterpolator {
  public:
+  ParameterInterpolator() { }
   ParameterInterpolator(float* state, float new_value, size_t size) {
+    Init(state, new_value, size);
+  }
+
+  ParameterInterpolator(float* state, float new_value, float step) {
     state_ = state;
     value_ = *state;
-    increment_ = (new_value - *state) / static_cast<float>(size);
+    increment_ = (new_value - *state) * step;
   }
 
   ~ParameterInterpolator() {
     *state_ = value_;
   }
   
+  inline void Init(float* state, float new_value, size_t size) {
+    state_ = state;
+    value_ = *state;
+    increment_ = (new_value - *state) / static_cast<float>(size);
+  }
+
   inline float Next() {
     value_ += increment_;
     return value_;

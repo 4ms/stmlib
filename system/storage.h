@@ -1,6 +1,6 @@
-// Copyright 2012 Olivier Gillet.
+// Copyright 2012 Emilie Gillet.
 //
-// Author: Olivier Gillet (ol.gillet@gmail.com)
+// Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -29,10 +29,14 @@
 #ifndef STMLIB_SYSTEM_STORAGE_H_
 #define STMLIB_SYSTEM_STORAGE_H_
 
-#ifdef STM32F4XX
-  #include "stmlib/system/sector_storage.h"
+#ifdef STM32H7XX
+  #include "stmlib/system/sector_storage_h7xx.h"
 #else
-  #include "stmlib/system/page_storage.h"
+  #ifdef STM32F4XX
+    #include "stmlib/system/sector_storage_f4xx.h"
+  #else
+    #include "stmlib/system/page_storage.h"
+  #endif
 #endif
 
 #endif  // STMLIB_SYSTEM_STORAGE_H_
