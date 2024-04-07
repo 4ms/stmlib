@@ -31,7 +31,9 @@
 #define STMLIB_DSP_COSINE_OSCILLATOR_H_
 
 #include "stmlib/stmlib.h"
+#ifndef M_PI
 #define M_PI 3.14159265358979323846
+#endif
 
 namespace stmlib {
 
