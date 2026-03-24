@@ -8,10 +8,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-// 
+//
 // See http://creativecommons.org/licenses/MIT/ for more information.
 //
 // -----------------------------------------------------------------------------
@@ -35,106 +35,95 @@
 
 namespace stmlib {
 
-enum SampleRateConversionDirection {
-  SRC_UP,
-  SRC_DOWN
-};
+enum SampleRateConversionDirection { SRC_UP, SRC_DOWN };
 
-template <SampleRateConversionDirection direction, int32_t ratio, int32_t length>
-struct SRC_FIR { };
+template <SampleRateConversionDirection direction, int32_t ratio,
+          int32_t length>
+struct SRC_FIR {};
 
-template<int32_t N>
-struct FilterState {
- public:
-  enum {
-    n = N
-  };
+template <int32_t N> struct FilterState {
+public:
+  enum { n = N };
   inline void Push(float value) {
     tail.Push(head);
     head = value;
   }
 
-  template<int32_t i> inline float Read() const {
+  template <int32_t i> inline float Read() const {
     return i == 0 ? head : tail.template Read<i - 1>();
   }
 
-  inline void Load(const float* x_state) {
+  inline void Load(const float *x_state) {
     head = x_state[0];
     tail.Load(x_state + 1);
   }
 
-  inline void Save(float* x_state) {
+  inline void Save(float *x_state) {
     x_state[0] = head;
     tail.Save(x_state + 1);
   }
 
- private:  
+private:
   float head;
-  FilterState<N-1> tail;
+  FilterState<N - 1> tail;
 };
 
-template<>
-class FilterState<1> {
- public:
-  enum {
-    n = 1
-  };
-  inline void Push(float value) {
-    head = value;
-  }
+template <> class FilterState<1> {
+public:
+  enum { n = 1 };
+  inline void Push(float value) { head = value; }
 
-  template<int32_t i> inline float Read() const {
-    return head;
-  }
+  template <int32_t i> inline float Read() const { return head; }
 
-  inline void Load(const float* x_state) {
-    head = x_state[0];
-  }
+  inline void Load(const float *x_state) { head = x_state[0]; }
 
-  inline void Save(float* x_state) {
-    x_state[0] = head;
-  }
- private:
+  inline void Save(float *x_state) { x_state[0] = head; }
+
+private:
   float head;
 };
 
-template<int32_t N, int32_t x_stride, int32_t h_stride, int32_t mirror = 0, int32_t i = 0, int32_t h_offset = 0>
+template <int32_t N, int32_t x_stride, int32_t h_stride, int32_t mirror = 0,
+          int32_t i = 0, int32_t h_offset = 0>
 struct Accumulator {
   enum {
-    h_index = mirror != 0 && h_offset + i * h_stride >= mirror / 2 ?
-        mirror - 1 - i * h_stride - h_offset : h_offset + i * h_stride
+    h_index = mirror != 0 && h_offset + i * h_stride >= mirror / 2
+                  ? mirror - 1 - i * h_stride - h_offset
+                  : h_offset + i * h_stride
   };
-  
-  template<typename IR>
-  inline float operator()(const float* x, const IR& h) const {
+
+  template <typename IR>
+  inline float operator()(const float *x, const IR &h) const {
     Accumulator<N - 1, x_stride, h_stride, mirror, i + 1, h_offset> a;
     return x[i * x_stride] * h.template Read<h_index>() + a(x, h);
   }
-  
-  template<int32_t NN, typename IR>
-  inline float operator()(const FilterState<NN>& x, const IR& h) const {
+
+  template <int32_t NN, typename IR>
+  inline float operator()(const FilterState<NN> &x, const IR &h) const {
     Accumulator<N - 1, x_stride, h_stride, mirror, i + 1, h_offset> a;
-    return x.template Read<i * x_stride>() * h.template Read<h_index>() + a(x, h);
+    return x.template Read<i * x_stride>() * h.template Read<h_index>() +
+           a(x, h);
   }
 };
 
-template<int32_t x_stride, int32_t h_stride, int32_t mirror, int32_t i, int32_t h_offset>
+template <int32_t x_stride, int32_t h_stride, int32_t mirror, int32_t i,
+          int32_t h_offset>
 struct Accumulator<0, x_stride, h_stride, mirror, i, h_offset> {
-  template<typename IR>
-  inline float operator()(const float* x, const IR& h) const {
+  template <typename IR>
+  inline float operator()(const float *x, const IR &h) const {
     return 0.0f;
   }
 
-  template<int32_t NN, typename IR>
-  inline float operator()(const FilterState<NN>& x, const IR& h) const {
+  template <int32_t NN, typename IR>
+  inline float operator()(const FilterState<NN> &x, const IR &h) const {
     return 0.0f;
   }
 };
 
-template<int32_t K, int32_t mirror = 0, int32_t remaining = K>
+template <int32_t K, int32_t mirror = 0, int32_t remaining = K>
 struct PolyphaseStage {
-  template<typename T, typename IR>
-  inline void operator()(float* &y, const T& x, const IR& h) const {
+  template <typename T, typename IR>
+  inline void operator()(float *&y, const T &x, const IR &h) const {
     Accumulator<T::n, 1, K, mirror, 0, K - remaining> a;
     *y++ = a(x, h);
     PolyphaseStage<K, mirror, remaining - 1> p;
@@ -142,67 +131,61 @@ struct PolyphaseStage {
   }
 };
 
-template<int32_t K, int32_t mirror>
-struct PolyphaseStage<K, mirror, 0> {
-  template<typename T, typename IR>
-  inline void operator()(float* &y, const T& x, const IR& h) const { }
+template <int32_t K, int32_t mirror> struct PolyphaseStage<K, mirror, 0> {
+  template <typename T, typename IR>
+  inline void operator()(float *&y, const T &x, const IR &h) const {}
 };
 
-template<
-    SampleRateConversionDirection direction,
-    int32_t ratio,
-    int32_t filter_size>
-class SampleRateConverter { };
+template <SampleRateConversionDirection direction, int32_t ratio,
+          int32_t filter_size>
+class SampleRateConverter {};
 
-template<int32_t filter_size>
+template <int32_t filter_size>
 class SampleRateConverter<SRC_UP, 1, filter_size> {
- public:
-  SampleRateConverter() { }
-  ~SampleRateConverter() { }
-  
-  inline void Init() { }
+public:
+  SampleRateConverter() {}
+  ~SampleRateConverter() {}
+
+  inline void Init() {}
   inline int32_t delay() const { return 0; }
-  inline void Process(const float* in, float* out, size_t input_size) {
+  inline void Process(const float *in, float *out, size_t input_size) {
     std::copy(&in[0], &in[input_size], &out[0]);
   }
- private:
+
+private:
   DISALLOW_COPY_AND_ASSIGN(SampleRateConverter);
 };
 
-template<int32_t filter_size>
+template <int32_t filter_size>
 class SampleRateConverter<SRC_DOWN, 1, filter_size> {
- public:
-  SampleRateConverter() { }
-  ~SampleRateConverter() { }
-  
-  inline void Init() { }
+public:
+  SampleRateConverter() {}
+  ~SampleRateConverter() {}
+
+  inline void Init() {}
   inline int32_t delay() const { return 0; }
-  inline void Process(const float* in, float* out, size_t input_size) {
+  inline void Process(const float *in, float *out, size_t input_size) {
     std::copy(&in[0], &in[input_size], &out[0]);
   }
- private:
+
+private:
   DISALLOW_COPY_AND_ASSIGN(SampleRateConverter);
 };
 
-template<int32_t ratio, int32_t filter_size>
+template <int32_t ratio, int32_t filter_size>
 class SampleRateConverter<SRC_UP, ratio, filter_size> {
- private:
-  enum {
-    N = filter_size / ratio,
-    K = ratio
-  };
- 
- public:
-  SampleRateConverter() { }
-  ~SampleRateConverter() { }
+private:
+  enum { N = filter_size / ratio, K = ratio };
 
-  inline void Init() {
-    std::fill(&x_[0], &x_[N], 0);
-  };
+public:
+  SampleRateConverter() {}
+  ~SampleRateConverter() {}
+
+  inline void Init() { std::fill(&x_[0], &x_[N], 0); };
 
   inline int32_t delay() const { return filter_size / ratio / 2; }
 
-  inline void Process(const float* in, float* out, size_t input_size) {
+  inline void Process(const float *in, float *out, size_t input_size) {
     SRC_FIR<SRC_UP, ratio, filter_size> ir;
     FilterState<N> x;
     x.Load(x_);
@@ -213,24 +196,21 @@ class SampleRateConverter<SRC_UP, ratio, filter_size> {
     }
     x.Save(x_);
   }
-  
- private:
+
+private:
   float x_[N];
 
   DISALLOW_COPY_AND_ASSIGN(SampleRateConverter);
 };
 
-template<int32_t ratio, int32_t filter_size>
+template <int32_t ratio, int32_t filter_size>
 class SampleRateConverter<SRC_DOWN, ratio, filter_size> {
- private:
-  enum {
-    N = filter_size,
-    K = ratio
-  };
- 
- public:
-  SampleRateConverter() { }
-  ~SampleRateConverter() { }
+private:
+  enum { N = filter_size, K = ratio };
+
+public:
+  SampleRateConverter() {}
+  ~SampleRateConverter() {}
 
   inline void Init() {
     std::fill(&x_[0], &x_[2 * N], 0);
@@ -239,7 +219,7 @@ class SampleRateConverter<SRC_DOWN, ratio, filter_size> {
 
   inline int32_t delay() const { return filter_size / 2; }
 
-  inline void Process(const float* in, float* out, size_t input_size) {
+  inline void Process(const float *in, float *out, size_t input_size) {
     // When downsampling, the number of input samples must be a multiple
     // of the downsampling ratio.
     if ((input_size % ratio) != 0) {
@@ -249,7 +229,7 @@ class SampleRateConverter<SRC_DOWN, ratio, filter_size> {
     SRC_FIR<SRC_DOWN, ratio, filter_size> ir;
     if (input_size >= 8 * filter_size) {
       std::copy(&in[0], &in[N], &x_[N - 1]);
-      
+
       // Generate the samples which require access to the history buffer.
       for (int32_t i = 0; i < N; i += ratio) {
         Accumulator<N, -1, 1, filter_size> accumulator;
@@ -257,7 +237,7 @@ class SampleRateConverter<SRC_DOWN, ratio, filter_size> {
         in += ratio;
         input_size -= ratio;
       }
-        
+
       // From now on, all the samples we need to access are located inside
       // the input buffer passed as an argument, and since the filter
       // is small, we can unroll the summation loop.
@@ -297,14 +277,14 @@ class SampleRateConverter<SRC_DOWN, ratio, filter_size> {
       }
     }
   }
- 
- private:
+
+private:
   float x_[2 * N];
-  float* x_ptr_;
+  float *x_ptr_;
 
   DISALLOW_COPY_AND_ASSIGN(SampleRateConverter);
 };
 
-}  // namespace stmlib
+} // namespace stmlib
 
-#endif  // STMLIB_DSP_SAMPLE_RATE_CONVERTER_H_
+#endif // STMLIB_DSP_SAMPLE_RATE_CONVERTER_H_

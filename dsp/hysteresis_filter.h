@@ -8,10 +8,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-// 
+//
 // See http://creativecommons.org/licenses/MIT/ for more information.
 //
 // -----------------------------------------------------------------------------
@@ -34,18 +34,16 @@
 namespace stmlib {
 
 class HysteresisFilter {
- public:
-  HysteresisFilter() { }
-  ~HysteresisFilter() { }
+public:
+  HysteresisFilter() {}
+  ~HysteresisFilter() {}
 
   void Init(float threshold) {
     value_ = 0.0f;
     threshold_ = threshold;
   }
-  
-  inline float Process(float value) {
-    return Process(value, threshold_);
-  }
+
+  inline float Process(float value) { return Process(value, threshold_); }
 
   inline float Process(float value, float threshold) {
     if (threshold == 0.0f) {
@@ -58,21 +56,19 @@ class HysteresisFilter {
         value_ = value + threshold;
       }
     }
-    
+
     return value_;
   }
 
   inline float value() const { return value_; }
 
- private:
+private:
   float value_;
   float threshold_;
-  
+
   DISALLOW_COPY_AND_ASSIGN(HysteresisFilter);
 };
 
+} // namespace stmlib
 
-}  // namespace stmlib
-
-#endif  // STMLIB_DSP_HYSTERESIS_FILTER_H_
-
+#endif // STMLIB_DSP_HYSTERESIS_FILTER_H_

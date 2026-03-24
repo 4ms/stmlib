@@ -8,10 +8,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-// 
+//
 // See http://creativecommons.org/licenses/MIT/ for more information.
 //
 // -----------------------------------------------------------------------------
@@ -48,11 +48,11 @@ static inline uint16_t fast_atan2(float y, float x) {
   float atan_1q = num / (x * x + bxy_a + num);
   uint32_t uatan_2q = (ux_s ^ uy_s) | unsafe_bit_cast<uint32_t, float>(atan_1q);
   return unsafe_bit_cast<float, uint32_t>(uatan_2q) * 16384 + offset;
-} 
+}
 
 extern const uint16_t atan_lut[513];
 
-static inline uint16_t fast_atan2r(float y, float x, float* r) {
+static inline uint16_t fast_atan2r(float y, float x, float *r) {
   float squared_magnitude = x * x + y * y;
   if (squared_magnitude == 0.0f) {
     *r = 0.0f;
@@ -79,6 +79,6 @@ static inline uint16_t fast_atan2r(float y, float x, float* r) {
   return angle + (quadrant << 14);
 }
 
-}  // namespace stmlib
+} // namespace stmlib
 
-#endif  // STMLIB_DSP_ATAN_H_
+#endif // STMLIB_DSP_ATAN_H_

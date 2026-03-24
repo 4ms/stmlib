@@ -8,10 +8,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-// 
+//
 // See http://creativecommons.org/licenses/MIT/ for more information.
 //
 // -----------------------------------------------------------------------------
@@ -39,15 +39,13 @@
 namespace stmlib {
 
 class Limiter {
- public:
-  Limiter() { }
-  ~Limiter() { }
+public:
+  Limiter() {}
+  ~Limiter() {}
 
-  void Init() {
-    peak_ = 0.5f;
-  }
+  void Init() { peak_ = 0.5f; }
 
-  void Process(float pre_gain, float* in_out, size_t size) {
+  void Process(float pre_gain, float *in_out, size_t size) {
     while (size--) {
       float s = *in_out * pre_gain;
       SLOPE(peak_, fabsf(s), 0.05f, 0.00002f);
@@ -56,12 +54,12 @@ class Limiter {
     }
   }
 
- private:
+private:
   float peak_;
 
   DISALLOW_COPY_AND_ASSIGN(Limiter);
 };
 
-}  // namespace stmlib
+} // namespace stmlib
 
-#endif  // STMLIB_DSP_LIMITER_H_
+#endif // STMLIB_DSP_LIMITER_H_

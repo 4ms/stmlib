@@ -8,10 +8,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-// 
+//
 // See http://creativecommons.org/licenses/MIT/ for more information.
 //
 // -----------------------------------------------------------------------------
@@ -33,21 +33,18 @@
 
 namespace stmlib {
 
-template<typename To, typename From>
-struct unsafe_bit_cast_t {
+template <typename To, typename From> struct unsafe_bit_cast_t {
   union {
     From from;
     To to;
   };
 };
 
-template<typename To, typename From>
-To unsafe_bit_cast(From from) {
-    unsafe_bit_cast_t<To, From> u;
-    u.from = from;
-    return u.to;
+template <typename To, typename From> To unsafe_bit_cast(From from) {
+  unsafe_bit_cast_t<To, From> u;
+  u.from = from;
+  return u.to;
 }
-
 
 static inline float fast_rsqrt_carmack(float x) {
   uint32_t i;
@@ -59,7 +56,7 @@ static inline float fast_rsqrt_carmack(float x) {
   y = unsafe_bit_cast<float, uint32_t>(i);
   x2 = x * 0.5f;
   y = y * (threehalfs - (x2 * y * y));
-	return y;
+  return y;
 }
 
 static inline float fast_rsqrt_accurate(float fp0) {
@@ -84,6 +81,6 @@ static inline float fast_rsqrt_accurate(float fp0) {
   return fp2 * fp3;
 }
 
-}  // namespace stmlib
+} // namespace stmlib
 
-#endif  // STMLIB_DSP_RSQRT_H_
+#endif // STMLIB_DSP_RSQRT_H_

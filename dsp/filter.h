@@ -8,10 +8,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-// 
+//
 // See http://creativecommons.org/licenses/MIT/ for more information.
 //
 // -----------------------------------------------------------------------------
@@ -32,8 +32,8 @@
 
 #include "stmlib/stmlib.h"
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 
 namespace stmlib {
 
@@ -52,25 +52,25 @@ enum FrequencyApproximation {
 };
 
 #define M_PI_F float(M_PI)
-#define M_PI_POW_2 M_PI * M_PI
-#define M_PI_POW_3 M_PI_POW_2 * M_PI
-#define M_PI_POW_5 M_PI_POW_3 * M_PI_POW_2
-#define M_PI_POW_7 M_PI_POW_5 * M_PI_POW_2
-#define M_PI_POW_9 M_PI_POW_7 * M_PI_POW_2
-#define M_PI_POW_11 M_PI_POW_9 * M_PI_POW_2
+#define M_PI_POW_2 M_PI *M_PI
+#define M_PI_POW_3 M_PI_POW_2 *M_PI
+#define M_PI_POW_5 M_PI_POW_3 *M_PI_POW_2
+#define M_PI_POW_7 M_PI_POW_5 *M_PI_POW_2
+#define M_PI_POW_9 M_PI_POW_7 *M_PI_POW_2
+#define M_PI_POW_11 M_PI_POW_9 *M_PI_POW_2
 
 class DCBlocker {
- public:
-  DCBlocker() { }
-  ~DCBlocker() { }
-  
+public:
+  DCBlocker() {}
+  ~DCBlocker() {}
+
   void Init(float pole) {
     x_ = 0.0f;
     y_ = 0.0f;
     pole_ = pole;
   }
-  
-  inline void Process(float* in_out, size_t size) {
+
+  inline void Process(float *in_out, size_t size) {
     float x = x_;
     float y = y_;
     const float pole = pole_;
@@ -82,28 +82,26 @@ class DCBlocker {
     x_ = x;
     y_ = y;
   }
-  
- private:
+
+private:
   float pole_;
   float x_;
   float y_;
 };
 
 class OnePole {
- public:
-  OnePole() { }
-  ~OnePole() { }
-  
+public:
+  OnePole() {}
+  ~OnePole() {}
+
   void Init() {
     set_f<FREQUENCY_DIRTY>(0.01f);
     Reset();
   }
-  
-  void Reset() {
-    state_ = 0.0f;
-  }
-  
-  template<FrequencyApproximation approximation>
+
+  void Reset() { state_ = 0.0f; }
+
+  template <FrequencyApproximation approximation>
   static inline float tan(float f) {
     if (approximation == FREQUENCY_EXACT) {
       // Clip coefficient to about 100.
@@ -132,17 +130,15 @@ class OnePole {
       return f * (M_PI_F + f2 * (a + f2 * (b + f2 * (c + f2 * (d + f2 * e)))));
     }
   }
-  
+
   // Set frequency and resonance from true units. Various approximations
   // are available to avoid the cost of tanf.
-  template<FrequencyApproximation approximation>
-  inline void set_f(float f) {
+  template <FrequencyApproximation approximation> inline void set_f(float f) {
     g_ = tan<approximation>(f);
     gi_ = 1.0f / (1.0f + g_);
   }
-  
-  template<FilterMode mode>
-  inline float Process(float in) {
+
+  template <FilterMode mode> inline float Process(float in) {
     float lp;
     lp = (g_ * in + state_) * gi_;
     state_ = g_ * (in - lp) + lp;
@@ -155,41 +151,36 @@ class OnePole {
       return 0.0f;
     }
   }
-  
-  template<FilterMode mode>
-  inline void Process(float* in_out, size_t size) {
+
+  template <FilterMode mode> inline void Process(float *in_out, size_t size) {
     while (size--) {
       *in_out = Process<mode>(*in_out);
       ++in_out;
     }
   }
-  
- private:
+
+private:
   float g_;
   float gi_;
   float state_;
-  
+
   DISALLOW_COPY_AND_ASSIGN(OnePole);
 };
 
-
-
 class Svf {
- public:
-  Svf() { }
-  ~Svf() { }
-  
+public:
+  Svf() {}
+  ~Svf() {}
+
   void Init() {
     set_f_q<FREQUENCY_DIRTY>(0.01f, 100.0f);
     Reset();
   }
-  
-  void Reset() {
-    state_1_ = state_2_ = 0.0f;
-  }
-  
+
+  void Reset() { state_1_ = state_2_ = 0.0f; }
+
   // Copy settings from another filter.
-  inline void set(const Svf& f) {
+  inline void set(const Svf &f) {
     g_ = f.g();
     r_ = f.r();
     h_ = f.h();
@@ -201,7 +192,7 @@ class Svf {
     r_ = r;
     h_ = h;
   }
-  
+
   // Set frequency and resonance coefficients from LUT, adjust remaining
   // parameter.
   inline void set_g_r(float g, float r) {
@@ -219,22 +210,21 @@ class Svf {
 
   // Set frequency and resonance from true units. Various approximations
   // are available to avoid the cost of tanf.
-  template<FrequencyApproximation approximation>
+  template <FrequencyApproximation approximation>
   inline void set_f_q(float f, float resonance) {
     g_ = OnePole::tan<approximation>(f);
     r_ = 1.0f / resonance;
     h_ = 1.0f / (1.0f + r_ * g_ + g_ * g_);
   }
-  
-  template<FilterMode mode>
-  inline float Process(float in) {
+
+  template <FilterMode mode> inline float Process(float in) {
     float hp, bp, lp;
     hp = (in - r_ * state_1_ - g_ * state_1_ - state_2_) * h_;
     bp = g_ * hp + state_1_;
     state_1_ = g_ * hp + bp;
     lp = g_ * bp + state_2_;
     state_2_ = g_ * bp + lp;
-    
+
     if (mode == FILTER_MODE_LOW_PASS) {
       return lp;
     } else if (mode == FILTER_MODE_BAND_PASS) {
@@ -245,16 +235,16 @@ class Svf {
       return hp;
     }
   }
-  
-  template<FilterMode mode_1, FilterMode mode_2>
-  inline void Process(float in, float* out_1, float* out_2) {
+
+  template <FilterMode mode_1, FilterMode mode_2>
+  inline void Process(float in, float *out_1, float *out_2) {
     float hp, bp, lp;
     hp = (in - r_ * state_1_ - g_ * state_1_ - state_2_) * h_;
     bp = g_ * hp + state_1_;
     state_1_ = g_ * hp + bp;
     lp = g_ * bp + state_2_;
     state_2_ = g_ * bp + lp;
-    
+
     if (mode_1 == FILTER_MODE_LOW_PASS) {
       *out_1 = lp;
     } else if (mode_1 == FILTER_MODE_BAND_PASS) {
@@ -275,20 +265,20 @@ class Svf {
       *out_2 = hp;
     }
   }
-  
-  template<FilterMode mode>
-  inline void Process(const float* in, float* out, size_t size) {
+
+  template <FilterMode mode>
+  inline void Process(const float *in, float *out, size_t size) {
     float hp, bp, lp;
     float state_1 = state_1_;
     float state_2 = state_2_;
-    
+
     while (size--) {
       hp = (*in - r_ * state_1 - g_ * state_1 - state_2) * h_;
       bp = g_ * hp + state_1;
       state_1 = g_ * hp + bp;
       lp = g_ * bp + state_2;
       state_2 = g_ * bp + lp;
-    
+
       float value;
       if (mode == FILTER_MODE_LOW_PASS) {
         value = lp;
@@ -299,7 +289,7 @@ class Svf {
       } else if (mode == FILTER_MODE_HIGH_PASS) {
         value = hp;
       }
-      
+
       *out = value;
       ++out;
       ++in;
@@ -307,20 +297,20 @@ class Svf {
     state_1_ = state_1;
     state_2_ = state_2;
   }
-  
-  template<FilterMode mode>
-  inline void ProcessAdd(const float* in, float* out, size_t size, float gain) {
+
+  template <FilterMode mode>
+  inline void ProcessAdd(const float *in, float *out, size_t size, float gain) {
     float hp, bp, lp;
     float state_1 = state_1_;
     float state_2 = state_2_;
-    
+
     while (size--) {
       hp = (*in - r_ * state_1 - g_ * state_1 - state_2) * h_;
       bp = g_ * hp + state_1;
       state_1 = g_ * hp + bp;
       lp = g_ * bp + state_2;
       state_2 = g_ * bp + lp;
-    
+
       float value;
       if (mode == FILTER_MODE_LOW_PASS) {
         value = lp;
@@ -331,7 +321,7 @@ class Svf {
       } else if (mode == FILTER_MODE_HIGH_PASS) {
         value = hp;
       }
-      
+
       *out += gain * value;
       ++out;
       ++in;
@@ -339,20 +329,20 @@ class Svf {
     state_1_ = state_1;
     state_2_ = state_2;
   }
-  
-  template<FilterMode mode>
-  inline void Process(const float* in, float* out, size_t size, size_t stride) {
+
+  template <FilterMode mode>
+  inline void Process(const float *in, float *out, size_t size, size_t stride) {
     float hp, bp, lp;
     float state_1 = state_1_;
     float state_2 = state_2_;
-    
+
     while (size--) {
       hp = (*in - r_ * state_1 - g_ * state_1 - state_2) * h_;
       bp = g_ * hp + state_1;
       state_1 = g_ * hp + bp;
       lp = g_ * bp + state_2;
       state_2 = g_ * bp + lp;
-    
+
       float value;
       if (mode == FILTER_MODE_LOW_PASS) {
         value = lp;
@@ -363,7 +353,7 @@ class Svf {
       } else if (mode == FILTER_MODE_HIGH_PASS) {
         value = hp;
       }
-      
+
       *out = value;
       out += stride;
       in += stride;
@@ -371,12 +361,9 @@ class Svf {
     state_1_ = state_1;
     state_2_ = state_2;
   }
-  
-  inline void ProcessMultimode(
-      const float* in,
-      float* out,
-      size_t size,
-      float mode) {
+
+  inline void ProcessMultimode(const float *in, float *out, size_t size,
+                               float mode) {
     float hp, bp, lp;
     float state_1 = state_1_;
     float state_2 = state_2_;
@@ -396,12 +383,9 @@ class Svf {
     state_1_ = state_1;
     state_2_ = state_2;
   }
-  
-  inline void ProcessMultimodeLPtoHP(
-      const float* in,
-      float* out,
-      size_t size,
-      float mode) {
+
+  inline void ProcessMultimodeLPtoHP(const float *in, float *out, size_t size,
+                                     float mode) {
     float hp, bp, lp;
     float state_1 = state_1_;
     float state_2 = state_2_;
@@ -421,22 +405,21 @@ class Svf {
     state_1_ = state_1;
     state_2_ = state_2;
   }
-  
-  template<FilterMode mode>
-  inline void Process(
-      const float* in, float* out_1, float* out_2, size_t size,
-      float gain_1, float gain_2) {
+
+  template <FilterMode mode>
+  inline void Process(const float *in, float *out_1, float *out_2, size_t size,
+                      float gain_1, float gain_2) {
     float hp, bp, lp;
     float state_1 = state_1_;
     float state_2 = state_2_;
-    
+
     while (size--) {
       hp = (*in - r_ * state_1 - g_ * state_1 - state_2) * h_;
       bp = g_ * hp + state_1;
       state_1 = g_ * hp + bp;
       lp = g_ * bp + state_2;
       state_2 = g_ * bp + lp;
-    
+
       float value;
       if (mode == FILTER_MODE_LOW_PASS) {
         value = lp;
@@ -447,7 +430,7 @@ class Svf {
       } else if (mode == FILTER_MODE_HIGH_PASS) {
         value = hp;
       }
-      
+
       *out_1 += value * gain_1;
       *out_2 += value * gain_2;
       ++out_1;
@@ -457,42 +440,38 @@ class Svf {
     state_1_ = state_1;
     state_2_ = state_2;
   }
-  
+
   inline float g() const { return g_; }
   inline float r() const { return r_; }
   inline float h() const { return h_; }
-  
- private:
+
+private:
   float g_;
   float r_;
   float h_;
 
   float state_1_;
   float state_2_;
-  
+
   DISALLOW_COPY_AND_ASSIGN(Svf);
 };
 
-
-
 // Naive Chamberlin SVF.
 class NaiveSvf {
- public:
-  NaiveSvf() { }
-  ~NaiveSvf() { }
-  
+public:
+  NaiveSvf() {}
+  ~NaiveSvf() {}
+
   void Init() {
     set_f_q<FREQUENCY_DIRTY>(0.01f, 100.0f);
     Reset();
   }
-  
-  void Reset() {
-    lp_ = bp_ = 0.0f;
-  }
-  
+
+  void Reset() { lp_ = bp_ = 0.0f; }
+
   // Set frequency and resonance from true units. Various approximations
   // are available to avoid the cost of sinf.
-  template<FrequencyApproximation approximation>
+  template <FrequencyApproximation approximation>
   inline void set_f_q(float f, float resonance) {
     if (approximation == FREQUENCY_EXACT) {
       f = f < 0.497f ? f : 0.497f;
@@ -503,16 +482,15 @@ class NaiveSvf {
     }
     damp_ = 1.0f / resonance;
   }
-  
-  template<FilterMode mode>
-  inline float Process(float in) {
+
+  template <FilterMode mode> inline float Process(float in) {
     float hp, notch, bp_normalized;
     bp_normalized = bp_ * damp_;
     notch = in - bp_normalized;
     lp_ += f_ * bp_;
     hp = notch - lp_;
     bp_ += f_ * hp;
-    
+
     if (mode == FILTER_MODE_LOW_PASS) {
       return lp_;
     } else if (mode == FILTER_MODE_BAND_PASS) {
@@ -523,12 +501,12 @@ class NaiveSvf {
       return hp;
     }
   }
-  
+
   inline float lp() const { return lp_; }
   inline float bp() const { return bp_; }
-  
-  template<FilterMode mode>
-  inline void Process(const float* in, float* out, size_t size) {
+
+  template <FilterMode mode>
+  inline void Process(const float *in, float *out, size_t size) {
     float hp, notch, bp_normalized;
     float lp = lp_;
     float bp = bp_;
@@ -538,7 +516,7 @@ class NaiveSvf {
       lp += f_ * bp;
       hp = notch - lp;
       bp += f_ * hp;
-      
+
       if (mode == FILTER_MODE_LOW_PASS) {
         *out++ = lp;
       } else if (mode == FILTER_MODE_BAND_PASS) {
@@ -552,8 +530,8 @@ class NaiveSvf {
     lp_ = lp;
     bp_ = bp;
   }
-  
-  inline void Split(const float* in, float* low, float* high, size_t size) {
+
+  inline void Split(const float *in, float *low, float *high, size_t size) {
     float hp, notch, bp_normalized;
     float lp = lp_;
     float bp = bp_;
@@ -570,8 +548,9 @@ class NaiveSvf {
     bp_ = bp;
   }
 
-  template<FilterMode mode>
-  inline void Process(const float* in, float* out, size_t size, size_t decimate) {
+  template <FilterMode mode>
+  inline void Process(const float *in, float *out, size_t size,
+                      size_t decimate) {
     float hp, notch, bp_normalized;
     float lp = lp_;
     float bp = bp_;
@@ -582,7 +561,7 @@ class NaiveSvf {
       lp += f_ * bp;
       hp = notch - lp;
       bp += f_ * hp;
-      
+
       ++n;
       if (n == decimate) {
         if (mode == FILTER_MODE_LOW_PASS) {
@@ -600,41 +579,35 @@ class NaiveSvf {
     lp_ = lp;
     bp_ = bp;
   }
-  
- private:
+
+private:
   float f_;
   float damp_;
   float lp_;
   float bp_;
-  
+
   DISALLOW_COPY_AND_ASSIGN(NaiveSvf);
 };
 
-
-
-// Modified Chamberlin SVF (Duane K. Wise) 
+// Modified Chamberlin SVF (Duane K. Wise)
 // http://www.dafx.ca/proceedings/papers/p_053.pdf
 class ModifiedSvf {
- public:
-  ModifiedSvf() { }
-  ~ModifiedSvf() { }
-  
-  void Init() {
-    Reset();
-  }
-  
-  void Reset() {
-    lp_ = bp_ = 0.0f;
-  }
-  
+public:
+  ModifiedSvf() {}
+  ~ModifiedSvf() {}
+
+  void Init() { Reset(); }
+
+  void Reset() { lp_ = bp_ = 0.0f; }
+
   inline void set_f_fq(float f, float fq) {
     f_ = f;
     fq_ = fq;
     x_ = 0.0f;
   }
-  
-  template<FilterMode mode>
-  inline void Process(const float* in, float* out, size_t size) {
+
+  template <FilterMode mode>
+  inline void Process(const float *in, float *out, size_t size) {
     float lp = lp_;
     float bp = bp_;
     float x = x_;
@@ -642,13 +615,13 @@ class ModifiedSvf {
     const float f = f_;
     while (size--) {
       lp += f * bp;
-      bp += -fq * bp -f * lp + *in;
+      bp += -fq * bp - f * lp + *in;
       if (mode == FILTER_MODE_BAND_PASS ||
           mode == FILTER_MODE_BAND_PASS_NORMALIZED) {
         bp += x;
       }
       x = *in++;
-      
+
       if (mode == FILTER_MODE_LOW_PASS) {
         *out++ = lp * f;
       } else if (mode == FILTER_MODE_BAND_PASS) {
@@ -663,43 +636,39 @@ class ModifiedSvf {
     bp_ = bp;
     x_ = x;
   }
-  
- private:
+
+private:
   float f_;
   float fq_;
   float x_;
   float lp_;
   float bp_;
-  
+
   DISALLOW_COPY_AND_ASSIGN(ModifiedSvf);
 };
-
-
 
 // Two passes of modified Chamberlin SVF with the same coefficients -
 // to implement Linkwitz–Riley (Butterworth squared) crossover filters.
 class CrossoverSvf {
- public:
-  CrossoverSvf() { }
-  ~CrossoverSvf() { }
-  
-  void Init() {
-    Reset();
-  }
-  
+public:
+  CrossoverSvf() {}
+  ~CrossoverSvf() {}
+
+  void Init() { Reset(); }
+
   void Reset() {
     lp_[0] = bp_[0] = lp_[1] = bp_[1] = 0.0f;
     x_[0] = 0.0f;
     x_[1] = 0.0f;
   }
-  
+
   inline void set_f_fq(float f, float fq) {
     f_ = f;
     fq_ = fq;
   }
-  
-  template<FilterMode mode>
-  inline void Process(const float* in, float* out, size_t size) {
+
+  template <FilterMode mode>
+  inline void Process(const float *in, float *out, size_t size) {
     float lp_1 = lp_[0];
     float bp_1 = bp_[0];
     float lp_2 = lp_[1];
@@ -710,13 +679,13 @@ class CrossoverSvf {
     const float f = f_;
     while (size--) {
       lp_1 += f * bp_1;
-      bp_1 += -fq * bp_1 -f * lp_1 + *in;
+      bp_1 += -fq * bp_1 - f * lp_1 + *in;
       if (mode == FILTER_MODE_BAND_PASS ||
           mode == FILTER_MODE_BAND_PASS_NORMALIZED) {
         bp_1 += x_1;
       }
       x_1 = *in++;
-      
+
       float y;
       if (mode == FILTER_MODE_LOW_PASS) {
         y = lp_1 * f;
@@ -727,15 +696,15 @@ class CrossoverSvf {
       } else if (mode == FILTER_MODE_HIGH_PASS) {
         y = x_1 - lp_1 * f - bp_1 * fq;
       }
-      
+
       lp_2 += f * bp_2;
-      bp_2 += -fq * bp_2 -f * lp_2 + y;
+      bp_2 += -fq * bp_2 - f * lp_2 + y;
       if (mode == FILTER_MODE_BAND_PASS ||
           mode == FILTER_MODE_BAND_PASS_NORMALIZED) {
         bp_2 += x_2;
       }
       x_2 = y;
-      
+
       if (mode == FILTER_MODE_LOW_PASS) {
         *out++ = lp_2 * f;
       } else if (mode == FILTER_MODE_BAND_PASS) {
@@ -753,17 +722,17 @@ class CrossoverSvf {
     x_[0] = x_1;
     x_[1] = x_2;
   }
-  
- private:
+
+private:
   float f_;
   float fq_;
   float x_[2];
   float lp_[2];
   float bp_[2];
-  
+
   DISALLOW_COPY_AND_ASSIGN(CrossoverSvf);
 };
 
-}  // namespace stmlib
+} // namespace stmlib
 
-#endif  // STMLIB_DSP_FILTER_H_
+#endif // STMLIB_DSP_FILTER_H_

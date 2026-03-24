@@ -8,10 +8,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-// 
+//
 // See http://creativecommons.org/licenses/MIT/ for more information.
 //
 // -----------------------------------------------------------------------------
@@ -29,38 +29,33 @@
 #ifndef STMLIB_DSP_DELAY_LINE_H_
 #define STMLIB_DSP_DELAY_LINE_H_
 
-#include "stmlib/stmlib.h"
 #include "stmlib/dsp/dsp.h"
+#include "stmlib/stmlib.h"
 
 #include <algorithm>
 
 namespace stmlib {
 
-template<typename T, size_t max_delay>
-class DelayLine {
- public:
-  DelayLine() { }
-  ~DelayLine() { }
-  
-  void Init() {
-    Reset();
-  }
+template <typename T, size_t max_delay> class DelayLine {
+public:
+  DelayLine() {}
+  ~DelayLine() {}
+
+  void Init() { Reset(); }
 
   void Reset() {
     std::fill(&line_[0], &line_[max_delay], T(0));
     delay_ = 1;
     write_ptr_ = 0;
   }
-  
-  inline void set_delay(size_t delay) {
-    delay_ = delay;
-  }
+
+  inline void set_delay(size_t delay) { delay_ = delay; }
 
   inline void Write(const T sample) {
     line_[write_ptr_] = sample;
     write_ptr_ = (write_ptr_ - 1 + max_delay) % max_delay;
   }
-  
+
   inline const T Allpass(const T sample, size_t delay, const T coefficient) {
     T read = line_[(write_ptr_ + delay) % max_delay];
     T write = sample + coefficient * read;
@@ -72,11 +67,11 @@ class DelayLine {
     Write(sample);
     return Read(delay);
   }
-  
+
   inline const T Read() const {
     return line_[(write_ptr_ + delay_) % max_delay];
   }
-  
+
   inline const T Read(size_t delay) const {
     return line_[(write_ptr_ + delay) % max_delay];
   }
@@ -87,7 +82,7 @@ class DelayLine {
     const T b = line_[(write_ptr_ + delay_integral + 1) % max_delay];
     return a + (b - a) * delay_fractional;
   }
-  
+
   inline const T ReadHermite(float delay) const {
     MAKE_INTEGRAL_FRACTIONAL(delay)
     int32_t t = (write_ptr_ + delay_integral + max_delay);
@@ -104,18 +99,14 @@ class DelayLine {
     return (((a * f) - b_neg) * f + c) * f + x0;
   }
 
- private:
+private:
   size_t write_ptr_;
   size_t delay_;
   T line_[max_delay];
-  
+
   DISALLOW_COPY_AND_ASSIGN(DelayLine);
 };
 
-}  // namespace stmlib
+} // namespace stmlib
 
-#endif  // STMLIB_DSP_DELAY_LINE_H_
-
-
-
-
+#endif // STMLIB_DSP_DELAY_LINE_H_

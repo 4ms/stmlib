@@ -8,10 +8,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-// 
+//
 // See http://creativecommons.org/licenses/MIT/ for more information.
 //
 // -----------------------------------------------------------------------------
@@ -42,12 +42,11 @@ enum CosineOscillatorMode {
 };
 
 class CosineOscillator {
- public:
-  CosineOscillator() { }
-  ~CosineOscillator() { }
+public:
+  CosineOscillator() {}
+  ~CosineOscillator() {}
 
-  template<CosineOscillatorMode mode>
-  inline void Init(float frequency) {
+  template <CosineOscillatorMode mode> inline void Init(float frequency) {
     if (mode == COSINE_OSCILLATOR_APPROXIMATE) {
       InitApproximate(frequency);
     } else {
@@ -56,7 +55,7 @@ class CosineOscillator {
     }
     Start();
   }
-  
+
   inline void InitApproximate(float frequency) {
     float sign = 16.0f;
     frequency -= 0.25f;
@@ -72,15 +71,13 @@ class CosineOscillator {
     iir_coefficient_ = sign * frequency * (1.0f - 2.0f * frequency);
     initial_amplitude_ = iir_coefficient_ * 0.25f;
   }
-  
+
   inline void Start() {
     y1_ = initial_amplitude_;
     y0_ = 0.5f;
   }
-  
-  inline float value() const {
-    return y1_ + 0.5f;
-  }
+
+  inline float value() const { return y1_ + 0.5f; }
 
   inline float Next() {
     float temp = y0_;
@@ -88,8 +85,8 @@ class CosineOscillator {
     y1_ = temp;
     return temp + 0.5f;
   }
-  
- private:
+
+private:
   float y1_;
   float y0_;
   float iir_coefficient_;
@@ -98,6 +95,6 @@ class CosineOscillator {
   DISALLOW_COPY_AND_ASSIGN(CosineOscillator);
 };
 
-}  // namespace stmlib
+} // namespace stmlib
 
-#endif  // STMLIB_DSP_COSINE_OSCILLATOR_H_
+#endif // STMLIB_DSP_COSINE_OSCILLATOR_H_

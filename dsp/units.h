@@ -8,10 +8,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-// 
+//
 // See http://creativecommons.org/licenses/MIT/ for more information.
 //
 // -----------------------------------------------------------------------------
@@ -29,20 +29,16 @@
 #ifndef STMLIB_DSP_UNITS_H_
 #define STMLIB_DSP_UNITS_H_
 
-#include "stmlib/stmlib.h"
 #include "stmlib/dsp/dsp.h"
+#include "stmlib/stmlib.h"
+#include "synth/phase_step_table.hh"
 
 namespace stmlib {
 
-extern const float lut_pitch_ratio_high[257];
-extern const float lut_pitch_ratio_low[257];
-
 inline float SemitonesToRatio(float semitones) {
-  float pitch = semitones + 128.0f;
-  MAKE_INTEGRAL_FRACTIONAL(pitch)
-
-  return lut_pitch_ratio_high[pitch_integral] * \
-      lut_pitch_ratio_low[static_cast<int32_t>(pitch_fractional * 256.0f)];
+  const auto t = ToySynth::Synth::PhaseStep::semitones_to_ratio(
+      ToySynth::Fixed::from_float(semitones / 128));
+  return t / static_cast<float>(1u << 21);
 }
 
 inline float SemitonesToRatioSafe(float semitones) {
@@ -58,11 +54,10 @@ inline float SemitonesToRatioSafe(float semitones) {
   return scale * SemitonesToRatio(semitones);
 }
 
-
 inline float Exp2Safe(float value) {
   return SemitonesToRatioSafe(value * 12.0f);
 }
 
-}  // namespace stmlib
+} // namespace stmlib
 
-#endif  // STMLIB_DSP_UNITS_H_
+#endif // STMLIB_DSP_UNITS_H_
