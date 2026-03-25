@@ -31,24 +31,12 @@
 
 #include "stmlib/dsp/dsp.h"
 #include "stmlib/stmlib.h"
-
-#include <algorithm>
+#include <array>
 
 namespace stmlib {
 
 template <typename T, size_t max_delay> class DelayLine {
 public:
-  DelayLine() {}
-  ~DelayLine() {}
-
-  void Init() { Reset(); }
-
-  void Reset() {
-    std::fill(&line_[0], &line_[max_delay], T(0));
-    delay_ = 1;
-    write_ptr_ = 0;
-  }
-
   inline void set_delay(size_t delay) { delay_ = delay; }
 
   inline void Write(const T sample) {
@@ -100,11 +88,9 @@ public:
   }
 
 private:
-  size_t write_ptr_;
-  size_t delay_;
-  T line_[max_delay];
-
-  DISALLOW_COPY_AND_ASSIGN(DelayLine);
+  size_t write_ptr_{};
+  size_t delay_{1};
+  std::array<T, max_delay> line_{};
 };
 
 } // namespace stmlib

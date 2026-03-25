@@ -59,17 +59,8 @@ enum FrequencyApproximation {
 #define M_PI_POW_9 M_PI_POW_7 *M_PI_POW_2
 #define M_PI_POW_11 M_PI_POW_9 *M_PI_POW_2
 
-class DCBlocker {
+template <float pole_> class DCBlocker {
 public:
-  DCBlocker() {}
-  ~DCBlocker() {}
-
-  void Init(float pole) {
-    x_ = 0.0f;
-    y_ = 0.0f;
-    pole_ = pole;
-  }
-
   inline void Process(float *in_out, size_t size) {
     float x = x_;
     float y = y_;
@@ -84,21 +75,12 @@ public:
   }
 
 private:
-  float pole_;
-  float x_;
-  float y_;
+  float x_{};
+  float y_{};
 };
 
 class OnePole {
 public:
-  OnePole() {}
-  ~OnePole() {}
-
-  void Init() {
-    set_f<FREQUENCY_DIRTY>(0.01f);
-    Reset();
-  }
-
   void Reset() { state_ = 0.0f; }
 
   template <FrequencyApproximation approximation>
@@ -160,25 +142,13 @@ public:
   }
 
 private:
-  float g_;
-  float gi_;
-  float state_;
-
-  DISALLOW_COPY_AND_ASSIGN(OnePole);
+  float g_{0.03142751f};
+  float gi_{0.9695301f};
+  float state_{};
 };
 
 class Svf {
 public:
-  Svf() {}
-  ~Svf() {}
-
-  void Init() {
-    set_f_q<FREQUENCY_DIRTY>(0.01f, 100.0f);
-    Reset();
-  }
-
-  void Reset() { state_1_ = state_2_ = 0.0f; }
-
   // Copy settings from another filter.
   inline void set(const Svf &f) {
     g_ = f.g();
@@ -446,22 +416,17 @@ public:
   inline float h() const { return h_; }
 
 private:
-  float g_;
-  float r_;
-  float h_;
+  float g_{0.03142751f};
+  float r_{0.01f};
+  float h_{0.99869967f};
 
-  float state_1_;
-  float state_2_;
-
-  DISALLOW_COPY_AND_ASSIGN(Svf);
+  float state_1_{};
+  float state_2_{};
 };
 
 // Naive Chamberlin SVF.
 class NaiveSvf {
 public:
-  NaiveSvf() {}
-  ~NaiveSvf() {}
-
   void Init() {
     set_f_q<FREQUENCY_DIRTY>(0.01f, 100.0f);
     Reset();
@@ -583,10 +548,8 @@ public:
 private:
   float f_;
   float damp_;
-  float lp_;
-  float bp_;
-
-  DISALLOW_COPY_AND_ASSIGN(NaiveSvf);
+  float lp_{};
+  float bp_{};
 };
 
 // Modified Chamberlin SVF (Duane K. Wise)

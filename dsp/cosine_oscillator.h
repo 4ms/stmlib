@@ -43,14 +43,11 @@ enum CosineOscillatorMode {
 
 class CosineOscillator {
 public:
-  CosineOscillator() {}
-  ~CosineOscillator() {}
-
   template <CosineOscillatorMode mode> inline void Init(float frequency) {
     if constexpr (mode == COSINE_OSCILLATOR_APPROXIMATE) {
       InitApproximate(frequency);
     } else {
-      iir_coefficient_ = 2.0f * cosf(2.0f * float(M_PI) * frequency);
+      iir_coefficient_ = 2.0f * std::cos(2.0f * float{M_PI} * frequency);
       initial_amplitude_ = iir_coefficient_ * 0.25f;
     }
     Start();
@@ -72,10 +69,7 @@ public:
     initial_amplitude_ = iir_coefficient_ * 0.25f;
   }
 
-  inline void Start() {
-    y1_ = initial_amplitude_;
-    y0_ = 0.5f;
-  }
+  inline void Start() { y1_ = initial_amplitude_; }
 
   inline float value() const { return y1_ + 0.5f; }
 
@@ -88,11 +82,9 @@ public:
 
 private:
   float y1_;
-  float y0_;
+  float y0_{.5f};
   float iir_coefficient_;
   float initial_amplitude_;
-
-  DISALLOW_COPY_AND_ASSIGN(CosineOscillator);
 };
 
 } // namespace stmlib
