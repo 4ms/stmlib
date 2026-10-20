@@ -31,7 +31,7 @@
 namespace stmlib {
 
 /* static */
-uint32_t Random::rng_state_ = 0x21;
+std::atomic<uint32_t> Random::rng_state_{0x21};
 
 /* input x is a 0.16 fixed-point number in [0,1)
    function returns -log2(x) as a 4.16 fixed-point number in [0, 16)
